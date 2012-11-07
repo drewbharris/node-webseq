@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>requestAnim Example</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script>
+       // requestAnim shim layer by Paul Irish
+
+    var bpm = 120,
+        notes = {
+          'whole': 1,
+          'half': 1,
+          'quarter': 1,
+          'eighth': 1,
+          'sixteenth': 1
+        },
+        count = 0;
+
+    $(document).ready(function(){
+
+      function draw() {
+        count++;
+        if (notes.sixteenth == 16){
+          if (notes.quarter == 4) {
+            notes.whole++;
+            notes.quarter = 1;
+          }
+          else {
+            notes.quarter++;
+          }
+          notes.sixteenth = 1;
+          notes.eighth = 1;
+        }
+        else if (notes.sixteenth == 4 || notes.sixteenth == 8 || notes.sixteenth == 12) {
+          notes.eighth++;
+          notes.sixteenth++;
+        }
+        else {
+          notes.sixteenth++;
+        }
+
+        $("#counter").text(notes.whole+":"+notes.quarter+":"+notes.eighth);
+      }
+
+      setInterval(function(){
+        draw();
+      }, 1000/(16*(bpm/60)));
+
+    })
+
+
+    </script>
+
+  </head>
+
+
+    <body>
+      <div id="counter"></div>
+    </body>
+  </html>​
