@@ -2,8 +2,16 @@
   <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>requestAnim Example</title>
+    <title>webseq</title>
+    <link href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
+    <style type="text/css">
+      #slider {
+        margin: 10px;
+        width: 400px;
+      }
+    </style>
     <script>
        // requestAnim shim layer by Paul Irish
 
@@ -18,6 +26,17 @@
         count = 0;
 
     $(document).ready(function(){
+
+      $("#bpm").text('bpm:' + bpm);
+      $("#slider").slider({
+        'min': 1,
+        'max': 200,
+        'value': bpm,
+        'slide': function(event, ui) {
+          bpm = ui.value;
+          $("#bpm").text('bpm:' + bpm);
+        }
+      });
 
       function draw() {
         count++;
@@ -43,9 +62,15 @@
         $("#counter").text(notes.whole+":"+notes.quarter+":"+notes.eighth);
       }
 
-      setInterval(function(){
-        draw();
-      }, 1000/(16*(bpm/60)));
+      function timer(){
+        setTimeout(function(){
+          draw();
+          timer();
+        }, 1000/(16*(bpm/60)));
+      }
+
+      timer();
+
 
     })
 
@@ -56,6 +81,8 @@
 
 
     <body>
+      <div id="bpm"></div>
       <div id="counter"></div>
+      <div id="slider"></div>
     </body>
   </html>​
