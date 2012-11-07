@@ -10,10 +10,22 @@ var app = require('express')(),
     when = require('when'),
     sequence = require('sequence');
 
-server.listen(8080);
+server.listen(10364);
 app.use("/images", express.static(__dirname + "/images"));
 app.use("/static", express.static(__dirname + "/static"));
 
 app.get('/', function (req, res) {
     res.sendfile(__dirname + '/index.html');
 });
+
+app.get('/client', function (req, res) {
+    res.sendfile(__dirname + '/client.html');
+});
+
+io.sockets.on('connection', function(socket){
+	socket.on('trigger', function(data){
+		socket.broadcast.emit('trigger', data);
+	})
+})
+
+

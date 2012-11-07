@@ -6,6 +6,7 @@
     <link href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <style type="text/css">
       #slider {
         margin: 10px;
@@ -25,10 +26,25 @@
         },
         count = 0,
         progressTicks = 0,
-        endBars = 4,
-        endTicks = 16*4*endBars;
+        endBars = 1,
+        endTicks = 16*4*endBars,
+        socket = io.connect('http://localhost:8080'),
+        samples = {
+          'kick': [],
+          'snare': []
+        };
+
+    var context = new webkitAudioContext(),
+        bufferLoader,
+        audioBuffers = {},
+        sounds = {};
 
     $(document).ready(function(){
+
+      socket.on('trigger', function(data){
+        playAudio(data.sample);
+        samples[data.sample].push(notes.whole*16 + notes.quarter*4 + notes.eighth*2 + notes.sixteenth);
+      });
 
       $("#bpm").text(bpm);
       $("#slider").slider({
@@ -51,6 +67,13 @@
         }
         $('#progress').text(progressTicks);
 
+        for (var sample in samples){
+          if (samples[sample].indexOf(notes.whole*16 + notes.quarter*4 + notes.eighth*2 + notes.sixteenth) > -1) {
+            playAudio(sample);
+            $("#play").text(sample);
+          }
+        }
+
         if (notes.sixteenth == 16){
           if (notes.quarter == 4) {
             if (notes.whole == endBars) {
@@ -60,9 +83,11 @@
               notes.whole++;
             }
             notes.quarter = 1;
+            playAudio('metup');
           }
           else {
             notes.quarter++;
+            playAudio('met');
           }
           notes.sixteenth = 1;
           notes.eighth = 1;
@@ -85,10 +110,39 @@
         }, 1000/(16*(bpm/60)));
       }
 
+      function init() {
+        console.log('init');
+        loadSound('kick');
+        loadSound('snare');
+        loadSound('met');
+        loadSound('metup');
+      }
+
+      function loadSound(name) {
+        var request = new XMLHttpRequest();
+        request.open('GET', '/static/'+name+'.wav', true);
+        request.responseType = 'arraybuffer';
+        request.onload = function() {
+          context.decodeAudioData(request.response, function(buffer) {
+            console.log('buffer loaded');
+            audioBuffers[name] = buffer;
+          });
+        }
+        request.send();
+      }
+
+      function playAudio(name) {
+        sounds[name] = context.createBufferSource();
+        sounds[name].buffer = audioBuffers[name];
+        sounds[name].connect(context.destination);
+        sounds[name].noteOn(0);
+      }
+
+      init();
       timer();
 
 
-    })
+    });
 
 
     </script>
@@ -101,5 +155,6 @@
       <div id="counter"></div>
       <div id="slider"></div>
       progress: <div id="progress"></div>
+      <div id="play"></div>
     </body>
   </html>​
